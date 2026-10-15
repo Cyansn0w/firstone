@@ -1,0 +1,16 @@
+{
+  "_hinweis": "PLATZHALTER aus der Referenz. Durch Graf-Gruppe-CI ersetzen und Overlays neu rendern.",
+  "accent": "#D6FE51",
+  "accent2": "#F6FE6D",
+  "glass": "#13190C",
+  "text": "#FFFFFF",
+  "ink": "#111111",
+  "paper": "#FFFFFF",
+  "fontCaption": "Archivo",
+  "fontSerif": "Instrument Serif",
+  "fontFiles": [],
+  "capSize": 58,
+  "capY": 0.43,
+  "capMaxWords": 2,
+  "capMaxChars": 16
+}

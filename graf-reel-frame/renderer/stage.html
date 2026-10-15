@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Graf Reel Stage</title>
+<style id="fontfaces">
+@font-face{font-family:"Archivo";src:url(fonts/archivo-latin-wdth-normal.woff2) format("woff2");font-weight:100 900;font-stretch:62% 125%;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Archivo";src:url(fonts/archivo-latin-ext-wdth-normal.woff2) format("woff2");font-weight:100 900;font-stretch:62% 125%;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Instrument Serif";font-style:italic;src:url(fonts/instrument-serif-latin-400-italic.woff2) format("woff2"),url(fonts/instrument-serif-latin-ext-400-italic.woff2) format("woff2")}
+</style>
+<style>
+html,body{margin:0;width:1080px;height:1920px;background:transparent;overflow:hidden}
+#stage{position:absolute;inset:0;overflow:hidden}
+.abs{position:absolute}
+.cx{left:0;right:0;text-align:center}
+.tile{position:absolute;width:300px;height:300px;margin:-150px 0 0 -150px;transform-origin:50% 50%}
+.tile .box{position:absolute;inset:0;border-radius:66px;box-shadow:0 16px 34px rgba(0,0,0,.20);display:grid;place-items:center;overflow:hidden}
+.tile .val{font-weight:800;font-stretch:108%;font-size:92px;letter-spacing:-.02em;line-height:1;white-space:nowrap}
+.tile .box img{width:62%;height:62%;object-fit:contain}
+.tile .lab{position:absolute;left:-200px;right:-200px;top:330px;text-align:center;font-weight:700;font-size:38px;letter-spacing:-.01em;white-space:nowrap}
+.arrow{font-family:"DejaVu Sans",sans-serif;font-weight:700}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// =====================================================================
+//  Graf Reel Stage: jedes Modul ist setup(job) + frame(t) -> reiner
+//  Zeit-Zustand, damit jedes Frame deterministisch gerendert werden kann.
+// =====================================================================
+const W = 1080, H = 1920;
+const $ = (tag, css, parent, html) => { const e = document.createElement(tag); if (css) e.style.cssText = css; if (html != null) e.innerHTML = html; (parent || stage).appendChild(e); return e; };
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, u) => a + (b - a) * u;
+const eo = u => 1 - Math.pow(1 - clamp(u), 3);           // easeOutCubic
+const eio = u => { u = clamp(u); return u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; };
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/→/g, '<span class="arrow">→</span>');
+const rgba = (hex, a) => { const h = hex.replace("#", ""); return `rgba(${parseInt(h.substr(0, 2), 16)},${parseInt(h.substr(2, 2), 16)},${parseInt(h.substr(4, 2), 16)},${a})`; };
+// Schriftgroesse verkleinern, bis el (Inhaltsbreite) in maxW passt
+function fit(el, maxW) { let fs = parseFloat(el.style.fontSize || getComputedStyle(el).fontSize); while (el.offsetWidth > maxW && fs > 10) { fs -= 2; el.style.fontSize = fs + "px"; } }
+// Pop mit Overshoot wie Referenz: 0 -> 108 % -> 100 %
+const pop = u => u <= 0 ? 0 : u < .22 ? lerp(0, 1.08, eo(u / .22)) : lerp(1.08, 1, eo((u - .22) / .16));
+// Standard-Einblendung: Fade + Blur + Scale
+function inAnim(el, u, dur = .18, blur = 9, from = .88, extra = "") {
+  const k = eo(u / dur);
+  el.style.opacity = u < 0 ? 0 : clamp(u / (dur * .6));
+  el.style.filter = `blur(${lerp(blur, 0, k)}px)`;
+  el.style.transform = `${extra} scale(${lerp(from, 1, k)})`;
+}
+
+let B, frameFn = () => "";
+window.setup = async (job, brand) => {
+  B = brand;
+  stage.innerHTML = "";
+  stage.style.background = "transparent";
+  document.body.style.fontFamily = `${B.fontCaption}, "Archivo", sans-serif`;
+  if (B.fontFiles) {
+    for (const f of B.fontFiles) {
+      const ff = new FontFace(f.family, `url("${f.src}")`, { weight: f.weight || "normal", style: f.style || "normal" });
+      document.fonts.add(await ff.load());
+    }
+  }
+  // Schriften vor dem Messen laden, sonst passt fit() falsch an
+  await Promise.all([`600 50px ${B.fontCaption}`, `800 50px ${B.fontCaption}`, `italic 50px ${B.fontSerif}`, "600 50px Archivo", 'italic 50px "Instrument Serif"']
+    .map(f => document.fonts.load(f, "AÄÖÜäöüß€²→").catch(() => null)));
+  frameFn = MODULES[job.module](job);
+  await document.fonts.ready;
+  const imgs = [...stage.querySelectorAll("img")];
+  await Promise.all(imgs.map(i => i.complete ? null : new Promise(r => { i.onload = i.onerror = r; })));
+  return true;
+};
+window.frame = t => frameFn(t) || "";
+
+function tile(parent, x, y, value, label, labelColor, icon) {
+  const n = $("div", `left:${x}px;top:${y}px`, parent); n.className = "tile";
+  const box = $("div", `background:radial-gradient(circle at 74% 24%, ${B.accent2} 0%, ${B.accent} 62%);color:${B.ink}`, n); box.className = "box";
+  if (icon) $("img", "", box).src = icon; else { const v = $("div", "font-size:92px", box, esc(value)); v.className = "val"; fit(v, 250); }
+  const l = $("div", `color:${labelColor}`, n, esc(label || "")); l.className = "lab";
+  if (labelColor !== B.ink) l.style.textShadow = "0 0 22px rgba(0,0,0,.5)";
+  return n;
+}
+
+const MODULES = {
+  // --------------------------------------------------------------- Captions
+  captions(job) {
+    const el = $("div", `top:${H * (job.y || B.capY)}px;transform-origin:50% 50%;margin-top:-40px;font-weight:600;font-stretch:112%;letter-spacing:-.01em;line-height:1.1`);
+    el.className = "abs cx";
+    const chunks = job.chunks;
+    return t => {
+      const i = chunks.findIndex(c => t >= c.a && t < c.b);
+      const hidden = (job.hide || []).some(r => t >= r[0] && t < r[1]);   // z.B. waehrend Hook
+      if (i < 0 || hidden) { el.style.opacity = 0; return "none"; }
+      const c = chunks[i], u = t - c.a;
+      const dark = (job.dark || []).some(r => t >= r[0] && t < r[1]);
+      el.style.top = H * (dark ? (job.darkY || .67) : (job.y || B.capY)) + "px";
+      el.style.color = c.style === "accent" ? B.accent : dark ? B.ink : B.text;
+      el.style.textShadow = dark ? "none" : "0 0 26px rgba(0,0,0,.45)";
+      el.style.fontFamily = c.style === "serif" ? `${B.fontSerif}, "Instrument Serif", serif` : "";
+      el.style.fontStyle = c.style === "serif" ? "italic" : "normal";
+      el.style.fontWeight = c.style === "serif" ? 400 : 600;
+      el.style.fontSize = (c.style === "serif" ? B.capSize * 1.9 : B.capSize) + "px";
+      el.innerHTML = esc(c.t);
+      inAnim(el, u, .18, 9, .88);
+      return u > .2 ? "s" + i + dark : "";
+    };
+  },
+  // --------------------------------------------------------------- Hook 2 Zeilen
+  hook(job) {
+    const y = H * (job.y || .41);
+    const l1 = $("div", `top:${y - 140}px;font-size:54px;font-weight:600;font-stretch:112%;color:${B.text};text-shadow:0 0 24px rgba(0,0,0,.45)`, null, esc(job.line1)); l1.className = "abs cx";
+    const l2 = $("div", `top:${y - 60}px;font-family:${B.fontSerif},"Instrument Serif",serif;font-style:italic;font-size:${job.size2 || 124}px;line-height:1;color:${B.text};text-shadow:0 0 30px rgba(0,0,0,.4);white-space:nowrap`); l2.className = "abs cx";
+    const sp = $("span", `display:inline-block;font-size:${job.size2 || 124}px`, l2, esc(job.line2));
+    fit(sp, W - 100);
+    const words = job.line2.split(" "), step = job.wordStep || .28;
+    return t => {
+      inAnim(l1, t, .2, 8, .9);
+      const u = t - .2, n = u < 0 ? 0 : Math.min(words.length, 1 + Math.floor(u / step));
+      sp.innerHTML = esc(words.slice(0, n).join(" "));
+      // jedes neue Wort blendet ein
+      const ul = n ? u - (n - 1) * step : -1;
+      inAnim(l2, ul, .2, 8, n > 1 ? .97 : .92);
+      return ul > .2 ? "h" + n : "";
+    };
+  },
+  // --------------------------------------------------------------- Such-Hook (Icon + Lupe)
+  lupe(job) {
+    const cx = W / 2, cy = H * (job.y || .62);
+    const ic = $("div", `left:${cx - 150}px;top:${cy - 150}px;width:300px;height:300px;border-radius:70px;background:radial-gradient(circle at 74% 24%, ${B.accent2}, ${B.accent} 62%);display:grid;place-items:center;box-shadow:0 0 70px ${rgba(B.accent, .7)};font-weight:800;font-size:120px;color:${B.ink}`);
+    ic.className = "abs";
+    if (job.icon) $("img", "width:64%;height:64%;object-fit:contain", ic).src = job.icon; else ic.innerHTML = esc(job.iconText || "G");
+    const lp = $("div", "left:0;top:0;width:0;height:0"); lp.className = "abs";
+    $("div", `left:160px;top:120px;width:28px;height:270px;border-radius:14px;background:linear-gradient(90deg,#bfbfbf,#f2f2f2,#a9a9a9);transform-origin:50% 0;transform:rotate(-45deg)`, lp).className = "abs";
+    $("div", `left:-165px;top:-165px;width:330px;height:330px;border-radius:50%;border:13px solid #f4f4f4;box-sizing:border-box;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.28), rgba(255,255,255,.04) 60%);box-shadow:0 10px 40px rgba(0,0,0,.35), inset 0 0 30px rgba(255,255,255,.25)`, lp).className = "abs";
+    const start = job.lupeAt ?? .35;
+    return t => {
+      const s = pop(t / 1.0 * 1);
+      ic.style.transform = `scale(${s})`;
+      ic.style.filter = `blur(${lerp(10, 0, eo(t / .3))}px)`;
+      const u = t - start;
+      const a = [W * .98, H * .9], b = [cx, cy];
+      let p = u < 0 ? a : [lerp(a[0], b[0], eio(u / .55)), lerp(a[1], b[1], eio(u / .55))];
+      if (u > .55) p = [p[0] + Math.sin(u * 2.2) * 14, p[1] + Math.cos(u * 1.7) * 10];
+      lp.style.opacity = u < 0 ? 0 : 1;
+      lp.style.transform = `translate(${p[0]}px,${p[1]}px)`;
+    };
+  },
+  // --------------------------------------------------------------- Fakten (1-4 Kacheln nacheinander)
+  fakten(job) {
+    const items = job.items, n = items.length, gap = 340;
+    const y = H * (job.y || .64);
+    const tiles = items.map((it, i) => tile(stage, W / 2 + (i - (n - 1) / 2) * (n > 3 ? 0 : gap) , y, it.value, it.label, B.text, it.icon));
+    // bei 4 Kacheln: 2x2
+    if (n === 4) tiles.forEach((tl, i) => { tl.style.left = (W / 2 + (i % 2 ? 175 : -175)) + "px"; tl.style.top = (y + (i < 2 ? -230 : 230)) + "px"; });
+    if (n === 3 || n > 4) tiles.forEach(tl => tl.style.transform = "scale(.8)");
+    const step = job.step || .45, base = n === 3 ? .8 : 1;
+    return t => {
+      tiles.forEach((tl, i) => { const u = t - i * step; tl.style.transform = `scale(${pop(u) * base})`; tl.style.filter = `blur(${lerp(8, 0, eo(u / .2))}px)`; });
+      return t > (n - 1) * step + .5 ? "f" : "";
+    };
+  },
+  // --------------------------------------------------------------- Gleichung (weisser Vollbild-Screen)
+  gleichung(job) {
+    stage.style.background = B.paper;
+    const y = H * (job.y || .48), tB = job.bAt ?? 1.4, out = job.outAt ?? (job.duration - .35);
+    const wrap = $("div", "inset:0"); wrap.className = "abs";
+    const A = tile(wrap, W / 2, y, job.a.value, job.a.label, B.ink, job.a.icon);
+    const Bt = tile(wrap, W / 2 + 230, y, job.b.value, job.b.label, B.ink, job.b.icon);
+    const plus = $("div", `left:${W / 2 - 32}px;top:${y - 32}px;width:64px;height:64px;border-radius:50%;background:${B.ink};color:${B.paper};display:grid;place-items:center;font-size:54px;font-weight:600;line-height:1`, wrap, "+"); plus.className = "abs";
+    return t => {
+      const ua = t, ub = t - tB - .08, up = t - tB;
+      const ax = lerp(W / 2, W / 2 - 230, eo((t - tB) / .3));
+      A.style.left = ax + "px";
+      A.style.transform = `scale(${pop(ua)})`;
+      Bt.style.transform = `scale(${pop(ub)})`;
+      plus.style.transform = `scale(${pop(up)})`;
+      const o = t - out;
+      wrap.style.opacity = o < 0 ? 1 : lerp(1, .25, clamp(o / .25));
+      wrap.style.filter = `blur(${o < 0 ? 0 : lerp(0, 16, clamp(o / .25))}px)`;
+      return (t > tB + .5 && o < 0) ? "g" : "";
+    };
+  },
+  // --------------------------------------------------------------- Proof (Verlauf + Pille + Logo-Panel)
+  proof(job) {
+    const y = H * (job.y || .71);
+    const shade = $("div", `inset:0;background:linear-gradient(180deg, rgba(0,0,0,0) 52%, rgba(0,0,0,${job.shade ?? .85}) 100%)`); shade.className = "abs";
+    const pill = $("div", `left:${W / 2 - 320}px;top:${y - 175 - 38}px;width:640px;height:76px;border-radius:38px;background:${rgba(B.glass, .82)};border:1.5px solid ${B.accent};box-sizing:border-box;display:flex;align-items:center;gap:18px;padding:0 30px;color:${B.text};font-size:30px;font-weight:500;font-stretch:105%;white-space:nowrap;overflow:hidden`); pill.className = "abs";
+    const dot = $("div", `width:20px;height:20px;border-radius:50%;background:${B.accent};flex:none;box-shadow:0 0 12px ${B.accent}`, pill);
+    const ptxt = $("span", "", pill);
+    let panel, track, trackW = 0;
+    if (job.logos && job.logos.length) {
+      panel = $("div", `left:${W / 2 - 430}px;top:${y - 125}px;width:860px;height:250px;border-radius:36px;background:${rgba(B.glass, .85)};border:1px solid rgba(255,255,255,.28);box-sizing:border-box;overflow:hidden`); panel.className = "abs";
+      track = $("div", "left:0;top:0;height:100%;display:grid;grid-auto-flow:column;grid-template-rows:1fr 1fr;align-items:center;column-gap:80px;padding:0 40px", panel); track.className = "abs";
+      const list = job.logos.concat(job.logos.length % 2 ? [job.logos[0]] : []);
+      const all = list.concat(list, list);
+      all.forEach(l => {
+        if (/\.(png|svg|jpe?g|webp)$/i.test(l)) $("img", "height:62px;max-width:240px;object-fit:contain;filter:brightness(0) invert(1)", track).src = l;
+        else $("div", `color:${B.text};font-size:34px;font-weight:700;font-stretch:115%;letter-spacing:.04em;white-space:nowrap`, track, esc(l));
+      });
+    }
+    const text = job.text || "", speed = job.speed || 120;
+    return t => {
+      shade.style.opacity = clamp(t / .4);
+      inAnim(pill, t, .25, 6, .9);
+      ptxt.textContent = text.substr(0, Math.floor(lerp(0, text.length, clamp((t - .3) / .7))));
+      dot.style.opacity = t < .05 ? 0 : 1;
+      if (panel) {
+        if (!trackW) trackW = track.scrollWidth / 3;
+        inAnim(panel, t - .05, .3, 10, .94);
+        track.style.transform = `translateX(${-((t * speed) % trackW)}px)`;
+      }
+    };
+  },
+  // --------------------------------------------------------------- Karussell (9:16-Karten)
+  karussell(job) {
+    // Standard: kleiner und oberhalb des Kopfes, weil Premiere die Person nicht automatisch freistellt
+    const k = job.scale || .7, cw = 370 * k, ch = 660 * k, gap = 28 * k, yc = H * (job.y || .15), sp = job.speed || 160;
+    const imgs = job.images && job.images.length ? job.images : [null, null, null, null, null, null];
+    const track = $("div", `left:0;top:${yc - ch / 2}px;height:${ch}px`); track.className = "abs";
+    const cards = [];
+    for (let i = 0; i < Math.max(8, imgs.length); i++) {
+      const src = imgs[i % imgs.length];
+      const c = $("div", `left:${i * (cw + gap)}px;top:0;width:${cw}px;height:${ch}px;border-radius:26px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.3);background:linear-gradient(160deg,#6f7c6a,#2f352c)`, track);
+      c.className = "abs";
+      if (src) $("img", "width:100%;height:100%;object-fit:cover", c).src = src;
+      cards.push(c);
+    }
+    return t => {
+      track.style.transform = `translateX(${W + 200 - eo(t / .6) * 600 - t * sp}px)`;
+      cards.forEach((c, i) => { const u = t - i * .06; c.style.opacity = clamp(u / .18); });
+    };
+  },
+  // --------------------------------------------------------------- Transition (Light-Leak)
+  transition(job) {
+    const leak = $("div", `left:-100px;right:-100px;top:0;height:${H * 1.6}px;background:linear-gradient(0deg, ${rgba(B.accent, 0)} 0%, ${rgba(B.accent, 1)} 22%, ${rgba(B.accent, .6)} 45%, ${rgba(B.accent, 0)} 75%)`); leak.className = "abs";
+    const flash = $("div", "inset:0;background:#fffaf2"); flash.className = "abs";
+    const bar = $("div", `top:0;width:90px;height:${H}px;background:${B.accent};filter:blur(14px)`); bar.className = "abs";
+    return t => {
+      leak.style.transform = `translateY(${lerp(H * .9, -H * 1.1, clamp(t / .32))}px)`;
+      leak.style.opacity = t < .3 ? lerp(0, .9, clamp(t / .12)) : lerp(.9, 0, clamp((t - .3) / .12));
+      flash.style.opacity = t < .16 ? lerp(0, .95, clamp((t - .06) / .1)) : lerp(.95, 0, clamp((t - .16) / .16));
+      bar.style.opacity = t > .22 && t < .44 ? 1 : 0;
+      bar.style.left = lerp(W * .75, W * .25, clamp((t - .22) / .2)) - 45 + "px";
+    };
+  },
+  // --------------------------------------------------------------- CTA-Button
+  cta(job) {
+    const y = H * (job.y || .6), bw = 680, bh = 120;
+    const root = $("div", `left:${W / 2 - bw / 2}px;top:${y - bh / 2}px;width:${bw}px;height:${bh}px;transform-origin:50% 50%`); root.className = "abs";
+    $("div", `inset:0;border-radius:60px;background:${rgba(B.glass, .8)};border:2px solid ${rgba(B.accent, .55)};box-sizing:border-box;box-shadow:0 10px 30px rgba(0,0,0,.25)`, root).className = "abs";
+    const ring = (w, bl) => {
+      const r = $("div", `inset:-${w / 2}px;border-radius:66px;padding:${w}px;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;filter:blur(${bl}px)`, root);
+      r.className = "abs"; return r;
+    };
+    const tr = ring(5, 0), gl = ring(12, 14);
+    const tx = $("div", `inset:0;display:grid;place-items:center;color:${B.text};font-size:46px;font-weight:600;font-stretch:108%;letter-spacing:-.01em;white-space:nowrap`, root); tx.className = "abs";
+    fit($("span", "font-size:46px", tx, esc(job.text)), bw - 80);
+    const gAt = job.glowAt ?? .8, speed = job.glowSpeed ?? 140;
+    return t => {
+      root.style.opacity = clamp(t / .15);
+      root.style.transform = `scale(${lerp(.9, 1, eo(t / .25))})`;
+      inAnim(tx, t - .05, .22, 7, 1);
+      const ang = (t * speed) % 360, o = clamp((t - gAt) / .3);
+      const cg = `conic-gradient(from ${ang}deg, ${rgba(B.accent, 0)} 0deg, ${rgba(B.accent, 0)} 250deg, ${rgba(B.accent, 1)} 330deg, ${rgba(B.accent2, 1)} 345deg, ${rgba(B.accent, 0)} 360deg)`;
+      tr.style.background = cg; gl.style.background = cg;
+      tr.style.opacity = o; gl.style.opacity = o * .9;
+    };
+  },
+  // --------------------------------------------------------------- Verlauf unten
+  shade(job) {
+    const s = $("div", `inset:0;background:linear-gradient(180deg, rgba(0,0,0,0) 52%, rgba(0,0,0,${job.opacity ?? .85}) 100%)`); s.className = "abs";
+    return t => { s.style.opacity = clamp(t / .4); return t > .4 ? "s" : ""; };
+  },
+  // --------------------------------------------------------------- Pflichtangaben GEG (Objekt-Videos)
+  energie(job) {
+    const el = $("div", `left:60px;right:60px;bottom:${H * .2}px;padding:18px 26px;border-radius:18px;background:${rgba(B.glass, .78)};color:${B.text};font-size:24px;line-height:1.35;font-weight:500`, null, esc(job.text)); el.className = "abs";
+    return t => { inAnim(el, t, .25, 4, .98); return t > .3 ? "e" : ""; };
+  }
+};
+</script>
+</body>
+</html>

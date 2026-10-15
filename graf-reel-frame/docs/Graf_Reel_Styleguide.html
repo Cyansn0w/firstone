@@ -101,7 +101,7 @@ td.tc{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nu
 <header style="display:flex;flex-direction:column;gap:16px">
   <span class="eyebrow">Graf-Gruppe · Social Video</span>
   <h1>Reel-Frame im <em>Ad-Stil</em> der Referenz</h1>
-  <p class="lead">Der Schnitt einer 20-Sekunden-Werbeanzeige, zerlegt und als wiederverwendbares System für After Effects und Premiere Pro nachgebaut. Gilt für Objekt-Vorstellungen, Experten-Videos, Recruiting und Lead-Ads.</p>
+  <p class="lead">Der Schnitt einer 20-Sekunden-Werbeanzeige, zerlegt und als wiederverwendbares System für Premiere Pro nachgebaut. Alle Grafiken kommen als fertige, transparente Clips. Gilt für Objekt-Vorstellungen, Experten-Videos, Recruiting und Lead-Ads.</p>
   <div class="meta"><span>Referenz: 20,7 s</span><span>9:16 · 720×1280 → Frame 1080×1920</span><span>25 fps</span><span>6 Akte</span><span>3 Kamerawechsel, sonst Jump-Cuts</span></div>
 </header>
 
@@ -135,22 +135,22 @@ td.tc{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nu
 <section>
   <span class="eyebrow">Bausteine</span>
   <h2>Die Module im Frame</h2>
-  <p>Jedes Modul ist eine eigene Komposition in After Effects. Module mit <b>.mogrt</b> exportiert das Skript zusätzlich als Grafikvorlage für Premiere, Texte und Akzentfarbe sind dort im Fenster „Essential Graphics“ editierbar. Farben in den Vorschauen sind die Referenz-Platzhalter.</p>
+  <p>Jedes Modul wird als transparenter Clip (.mov mit Alphakanal, 1080×1920, 25 fps) gerendert und in Premiere auf eine Spur über das Video gelegt. Texte, Werte, Logos und Fotos stehen pro Video in einer kleinen Steuerdatei (<code>spec.json</code>). Farben in den Vorschauen sind die Referenz-Platzhalter.</p>
   <div class="mods">
-    <div class="mod"><div class="phone"><div class="person"></div><div class="c-word">Traumlage</div></div><h3>M01 Caption</h3><span class="cap">.mogrt · oder automatisch aus SRT</span></div>
-    <div class="mod"><div class="phone"><div class="person"></div><div class="hook"><small>Hör auf</small><b>Portale zu durchsuchen</b></div></div><h3>M02 Hook Serif</h3><span class="cap">.mogrt · Wort-Takt einstellbar</span></div>
-    <div class="mod"><div class="phone"><div class="person"></div><div class="ic"></div><div class="lupe"></div></div><h3>M02b Such-Hook</h3><span class="cap">nur AE · eigenes Icon einsetzen</span></div>
-    <div class="mod"><div class="phone white"><div class="tiles"><div class="tile"><i>Top</i><em>Lage</em></div><span class="plus">+</span><div class="tile"><i>0 €</i><em>Provision</em></div></div><div class="c-word">für Ihre Familie</div></div><h3>M03/M04 Kacheln & Gleichung</h3><span class="cap">.mogrt · A, B, Caption, Timing</span></div>
-    <div class="mod"><div class="phone"><div class="cards"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="person"></div><div class="shade"></div><div class="pill">+350 verkaufte Immobilien</div><div class="panel"><div>PARTNER · PRESSE · GOOGLE 4,9 · PARTNER · PRESSE · GOOGLE 4,9 ·</div></div></div><h3>M05–M07 Proof</h3><span class="cap">Pille + Verlauf .mogrt · Logos, Karussell in AE</span></div>
-    <div class="mod"><div class="phone"><div class="person"></div><div class="leak"></div><div class="leak"></div></div><h3>M08 Transition</h3><span class="cap">.mogrt · 0,6 s mittig über den Schnitt</span></div>
-    <div class="mod"><div class="phone"><div class="person"></div><div class="cta">Besichtigung anfragen →</div></div><h3>M09 CTA-Button</h3><span class="cap">.mogrt · Text, Höhe, Glow-Start</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="c-word">Traumlage</div></div><h3>Captions</h3><span class="cap">automatisch aus der SRT von Premiere</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="hook"><small>Hör auf</small><b>Portale zu durchsuchen</b></div></div><h3>Hook</h3><span class="cap">Wort-Takt einstellbar</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="ic"></div><div class="lupe"></div></div><h3>Such-Hook</h3><span class="cap">eigenes Icon oder Buchstabe</span></div>
+    <div class="mod"><div class="phone white"><div class="tiles"><div class="tile"><i>Top</i><em>Lage</em></div><span class="plus">+</span><div class="tile"><i>0 €</i><em>Provision</em></div></div><div class="c-word">für Ihre Familie</div></div><h3>Gleichung & Fakten</h3><span class="cap">Werte, Labels, Timing, bis 4 Fakten</span></div>
+    <div class="mod"><div class="phone"><div class="cards"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="person"></div><div class="shade"></div><div class="pill">+350 verkaufte Immobilien</div><div class="panel"><div>PARTNER · PRESSE · GOOGLE 4,9 · PARTNER · PRESSE · GOOGLE 4,9 ·</div></div></div><h3>Proof & Karussell</h3><span class="cap">Logos als PNG/SVG, Objektfotos als Karten</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="leak"></div><div class="leak"></div></div><h3>Transition</h3><span class="cap">0,6 s mittig über den Schnitt</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="cta">Besichtigung anfragen →</div></div><h3>CTA-Button</h3><span class="cap">Text, Höhe, Glow-Start</span></div>
   </div>
 </section>
 
 <section>
   <span class="eyebrow">Ton</span>
   <h2>Soundeffekt-Liste</h2>
-  <p>Die Zeitpunkte stammen aus dem Bild und dem Spektrogramm der Referenz. Welche Sounddatei es genau war, lässt sich nicht bestimmen. Wählt passende Sounds aus einer lizenzierten Bibliothek (z. B. Artlist, Epidemic Sound) und legt sie in den Projektordner <code>05_SFX</code>.</p>
+  <p>Die Zeitpunkte stammen aus dem Bild und dem Spektrogramm der Referenz. Welche Sounddatei es genau war, lässt sich nicht bestimmen. Wählt passende Sounds aus einer lizenzierten Bibliothek (z. B. Artlist, Epidemic Sound) und legt sie in einen festen SFX-Ordner, den jedes Premiere-Projekt nutzt.</p>
   <div class="tw"><table>
     <thead><tr><th>Zeit</th><th>Ereignis</th><th>Sound</th><th>Pegel</th></tr></thead>
     <tbody>
@@ -172,31 +172,28 @@ td.tc{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nu
 
 <section>
   <span class="eyebrow">Werkzeuge</span>
-  <h2>Dateien und Einrichtung</h2>
+  <h2>Ablauf in Premiere Pro</h2>
 <div class="files">graf-reel-frame/
-  ae/graf_config.jsxinc               Farben, Schriften, Caption-Maße (einzige Stelle für die CI)
-  ae/01_GrafReel_Framework.jsx        baut alle Module und exportiert .mogrt
-  ae/02_GrafReel_Captions_aus_SRT.jsx macht aus einer SRT animierte Captions
-  ae/03_GrafReel_Zoom_Rig.jsx         Slow Push, Punch-In und Intro-Zoom für Footage
-  docs/Graf_Reel_Styleguide.html      dieses Dokument</div>
+  renderer/brand.json            Farben, Schriften, Caption-Maße (einzige Stelle für die CI)
+  renderer/render.mjs            rendert alle Module einer spec.json als transparente .mov
+  projekte/beispiel/spec.json    Beispiel: Texte, Werte, Logos, Fotos eines Videos
+  projekte/beispiel/export/      die fertigen Overlays zum Testen in Premiere</div>
   <div class="grid2">
-    <div class="box"><h3>Einmalig einrichten</h3><ol>
-      <li>In <code>graf_config.jsxinc</code> die Graf-Farben (HEX) und die PostScript-Namen der Schriften eintragen</li>
-      <li>In AE unter Voreinstellungen › Skripterstellung & Ausdrücke das Schreiben von Dateien erlauben</li>
-      <li>In AE <code>01_GrafReel_Framework.jsx</code> ausführen (Datei › Skripte › Skriptdatei ausführen)</li>
-      <li>Bei der Abfrage den .mogrt-Export bestätigen und einen Ordner wählen</li>
-      <li>In Premiere die .mogrt-Dateien über „Essential Graphics“ › Vorlage installieren einbinden</li>
+    <div class="box"><h3>Pro Video, Teil 1: Schnitt</h3><ol>
+      <li>Sequenz 1080×1920, 25 fps anlegen</li>
+      <li>Transkript erstellen, im Textfenster <b>Pausen löschen</b>. So entsteht der lückenlose Jump-Cut-Rhythmus</li>
+      <li>Zooms über „Bewegung › Skalierung“: jeden zweiten Schnitt auf 115 %, erster Clip mit Zoom-Out 135 → 100 % in 5 Frames, CTA-Teil langsam 100 → 115 %</li>
+      <li>Untertitel erstellen und als <b>SRT</b> exportieren. Wörter für die große Serif-Schrift mit <code>*Sternchen*</code>, für die Akzentfarbe mit <code>#Raute#</code> markieren</li>
     </ol></div>
-    <div class="box"><h3>Pro Video</h3><ol>
-      <li><b>Premiere:</b> Rohschnitt, alle Pausen raus (Textbasierte Bearbeitung › Pausen löschen)</li>
-      <li><b>Zooms:</b> jeden zweiten Jump-Cut auf 115 % setzen, CTA-Teil mit Slow Push 100→115 %</li>
-      <li><b>Captions:</b> Transkript erstellen, als SRT exportieren, in AE Skript 02 ausführen. Alternativ das Modul M01 manuell einsetzen</li>
-      <li><b>Grafiken:</b> .mogrt-Module auf V2/V3, Transition M08 mittig über den Schnitt</li>
-      <li><b>Proof-Akt:</b> in AE schneiden (Roto-Pinsel für die Person, Karussell dahinter)</li>
-      <li><b>SFX</b> nach der Liste oben anlegen, Grading und Export als H.264, 1080×1920, 25 fps</li>
+    <div class="box"><h3>Pro Video, Teil 2: Grafik</h3><ol>
+      <li>Texte, Werte und Zeiten in die <code>spec.json</code> eintragen, SRT danebenlegen</li>
+      <li>Rendern lassen (Claude oder <code>node render.mjs spec.json</code>)</li>
+      <li>Die .mov-Clips auf V2 und höher legen: Captions ganz oben, Transition mittig über den Schnitt</li>
+      <li>CTA-Clip und Footage zusammen verschachteln und die Verschachtelung zoomen, dann wächst der Button mit (wie in der Referenz)</li>
+      <li>Soundeffekte nach der Liste anlegen, graden, als H.264 1080×1920 exportieren</li>
     </ol></div>
   </div>
-  <p class="note">Hervorhebungen in der SRT: <code>*Wort*</code> wird groß in Serif kursiv, <code>#Wort#</code> in Akzentfarbe. Markierte Wörter stehen immer allein.</p>
+  <p class="note"><b>Person vor den Karten:</b> In der Referenz laufen die Karten hinter dem Kopf. Dafür muss die Person auf einer Spur über dem Karussell freigestellt werden, in Premiere mit einer nachgeführten Maske auf einer Kopie des Clips. Ohne Maske stehen die Karten standardmäßig kleiner oberhalb des Kopfes.</p>
 </section>
 
 <section>
@@ -220,7 +217,7 @@ td.tc{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nu
   <h2>Was noch fehlt</h2>
   <div class="grid2">
     <div class="box"><h3>Graf-CI</h3><p>Akzentfarbe, Glasfarbe und Schriften sind noch Platzhalter aus der Referenz. Sobald Logo, HEX-Werte und Schriften vorliegen, ist es eine Änderung in einer Datei.</p></div>
-    <div class="box"><h3>Erster Testlauf</h3><p>Die Skripte sind nicht in After Effects getestet. Beim ersten Lauf auftretende Fehlermeldungen bitte als Screenshot schicken, sie sind meist in Minuten behoben.</p></div>
+    <div class="box"><h3>Erster Test in Premiere</h3><p>Die Beispiel-Overlays sind gerendert und geprüft, aber noch nicht in eurer Premiere-Version importiert worden. Bitte einmal die Clips aus <code>projekte/beispiel/export</code> testen und melden, ob die Transparenz korrekt ankommt.</p></div>
   </div>
 </section>
 

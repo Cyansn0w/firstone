@@ -1,0 +1,21 @@
+{
+  "_hinweis": "Ein Eintrag pro Overlay. 'name' = Dateiname der .mov. Zeiten in Sekunden.",
+  "ausgabe": "export",
+  "module": [
+    { "name": "01_Captions", "module": "captions", "srt": "untertitel.srt", "dark": [[3.0, 7.1]], "hide": [[0, 3.0]] },
+    { "name": "02_Hook", "module": "hook", "line1": "Hör auf,", "line2": "Portale zu durchsuchen", "duration": 3 },
+    { "name": "03_Hook_Lupe", "module": "lupe", "iconText": "G", "duration": 3 },
+    { "name": "04_Gleichung", "module": "gleichung", "duration": 4.1, "bAt": 1.4,
+      "a": { "value": "1.000+", "label": "Angebote" },
+      "b": { "value": "0", "label": "Überblick" } },
+    { "name": "05_Fakten", "module": "fakten", "duration": 4,
+      "items": [ { "value": "92 m²", "label": "Wohnfläche" }, { "value": "3", "label": "Zimmer" }, { "value": "A+", "label": "Energieklasse" } ] },
+    { "name": "06_Proof", "module": "proof", "duration": 5, "text": "+350 vermittelte Immobilien",
+      "logos": ["PARTNER 1", "PARTNER 2", "PRESSE", "GOOGLE 4,9 ★", "PARTNER 3", "PARTNER 4"] },
+    { "name": "07_Karussell", "module": "karussell", "duration": 5, "images": [] },
+    { "name": "08_Transition", "module": "transition", "duration": 0.6 },
+    { "name": "09_CTA", "module": "cta", "text": "Erstgespräch sichern →", "duration": 5 },
+    { "name": "10_Energieangaben", "module": "energie", "duration": 5,
+      "text": "Energiebedarfsausweis · 32 kWh/(m²·a) · Wärmepumpe · Baujahr 2024 · Klasse A+" }
+  ]
+}

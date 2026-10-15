@@ -1,0 +1,9 @@
+{
+  "name": "graf-reel-renderer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Rendert die Grafik-Module des Graf-Gruppe Reel-Frames als transparente .mov fuer Premiere Pro",
+  "scripts": { "render": "node render.mjs" },
+  "dependencies": { "playwright": "1.47.2" }
+}
