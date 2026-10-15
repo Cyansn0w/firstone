@@ -1,0 +1,227 @@
+<title>Graf Reel-Frame</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column with a timeline ruler as the spine; modules shown as live mini phone frames */
+:root{
+  --bg:#F3F3EF; --surface:#FFFFFF; --fg:#17181A; --muted:#5D6066; --line:#DADBD4;
+  --accent:#2F5D50;            /* doc accent (neutral, not brand) */
+  --frame:#D6FE51; --frame2:#F6FE6D; --glass:#13190C; /* reference placeholder colors */
+  --display:"Archivo",system-ui,sans-serif; --body:"Archivo",system-ui,sans-serif;
+  --serif:"Instrument Serif",Georgia,serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121413;--surface:#1A1D1B;--fg:#ECEDE8;--muted:#A0A49E;--line:#2C302D;--accent:#8CC4B0;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121413;--surface:#1A1D1B;--fg:#ECEDE8;--muted:#A0A49E;--line:#2C302D;--accent:#8CC4B0;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+h1{font:800 clamp(2.2rem,6vw,3.6rem)/1.02 var(--display);font-stretch:118%;letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 em{font:italic 400 1.05em var(--serif);letter-spacing:0;font-stretch:100%}
+h2{font:750 1.55rem/1.15 var(--display);font-stretch:112%;margin:0 0 6px;text-wrap:balance}
+h3{font:700 1.05rem/1.3 var(--display);margin:0}
+p{margin:0;max-width:68ch}
+.eyebrow{font:500 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.lead{font-size:1.12rem;color:var(--muted);max-width:62ch}
+section{display:flex;flex-direction:column;gap:18px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;font:500 .82rem var(--mono);color:var(--muted)}
+.note{border-left:3px solid var(--accent);padding:10px 14px;background:var(--surface);font-size:.95rem}
+code,.mono{font-family:var(--mono);font-size:.86em}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:640px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.tc{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* timeline ruler */
+.ruler{position:relative;display:grid;grid-template-columns:3fr 4.1fr 4fr 4.9fr .4fr 4.3fr;height:58px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.ruler div{padding:8px 10px;font:600 .74rem/1.2 var(--mono);color:#111;border-right:1px solid rgba(0,0,0,.12);min-width:0;overflow:hidden}
+.ruler div span{display:block;font-weight:400;opacity:.7}
+.r1{background:#E9F7B2}.r2{background:#FFFFFF}.r3{background:#D9DCD3}.r4{background:#B9C3A8}.r5{background:var(--frame)}.r6{background:#CFE57A}
+.acts{display:grid;gap:14px}
+.act{display:grid;grid-template-columns:120px 1fr;gap:6px 20px;padding:16px 0;border-top:1px solid var(--line)}
+.act .tc{font:500 .85rem var(--mono);color:var(--accent);font-variant-numeric:tabular-nums}
+.act ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}
+@media (max-width:600px){.act{grid-template-columns:1fr}.ruler div span{display:none}}
+
+/* module previews */
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.mod{display:flex;flex-direction:column;gap:10px;min-width:0}
+.phone{aspect-ratio:9/16;max-width:100%;border-radius:14px;position:relative;overflow:hidden;background:linear-gradient(180deg,#d7d2c8 0%,#cfc8bb 55%,#9a7451 56%,#7d5a3c 100%)}
+.phone.white{background:#fff;border:1px solid var(--line)}
+.person{position:absolute;left:50%;top:22%;width:46%;height:60%;transform:translateX(-50%);border-radius:40% 40% 8px 8px;background:#1b2635}
+.person::before{content:"";position:absolute;left:50%;top:-22%;width:44%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:#c79b83}
+.mod .cap{font-size:.86rem;color:var(--muted)}
+.mod code{color:var(--fg)}
+.c-word{position:absolute;left:0;right:0;top:43%;text-align:center;color:#fff;font:650 15px var(--display);font-stretch:115%;text-shadow:0 0 10px rgba(0,0,0,.45);animation:wordIn 1.6s infinite}
+@keyframes wordIn{0%{opacity:0;filter:blur(6px);transform:scale(.88)}11%{opacity:1;filter:blur(0);transform:scale(1)}100%{opacity:1}}
+.hook{position:absolute;left:0;right:0;top:36%;text-align:center;color:#fff;text-shadow:0 0 10px rgba(0,0,0,.4)}
+.hook small{display:block;font:600 11px var(--display);font-stretch:115%}
+.hook b{display:block;font:italic 400 27px/1 var(--serif);animation:wordIn 2s infinite .2s both}
+.tiles{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;padding-bottom:20%}
+.tile{display:flex;flex-direction:column;align-items:center;gap:5px;animation:pop 2.4s infinite both}
+.tile:last-child{animation-delay:.5s}
+.tile i{width:54px;height:54px;border-radius:13px;background:radial-gradient(circle at 75% 25%,var(--frame2),var(--frame) 70%);box-shadow:0 5px 12px rgba(0,0,0,.18);display:grid;place-items:center;font:800 13px var(--display);font-style:normal;color:#111}
+.tile em{font:700 8px var(--display);font-style:normal;color:#111}
+.plus{width:14px;height:14px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font:700 10px/1 var(--display);margin-bottom:14px}
+.tiles+.c-word{color:#111;text-shadow:none;top:60%}
+@keyframes pop{0%{transform:scale(0)}10%{transform:scale(1.08)}16%,100%{transform:scale(1)}}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.85))}
+.pill{position:absolute;left:50%;transform:translateX(-50%);top:61%;width:70%;padding:4px 8px;border-radius:99px;background:rgba(19,25,12,.82);border:1px solid var(--frame);color:#fff;font:600 7px var(--display);display:flex;gap:5px;align-items:center;white-space:nowrap;overflow:hidden}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--frame);flex:none}
+.panel{position:absolute;left:10%;right:10%;top:68%;height:13%;border-radius:8px;background:rgba(19,25,12,.85);border:1px solid rgba(255,255,255,.25);overflow:hidden}
+.panel div{display:flex;gap:16px;padding:7px;color:#fff;font:700 7px var(--display);letter-spacing:.06em;white-space:nowrap;animation:marq 6s linear infinite}
+@keyframes marq{to{transform:translateX(-50%)}}
+.cards{position:absolute;top:6%;left:0;display:flex;gap:5px;animation:marq 8s linear infinite}
+.cards span{width:44px;aspect-ratio:9/16;border-radius:5px;background:linear-gradient(160deg,#6f7c6a,#3a4136)}
+.cta{position:absolute;left:50%;top:60%;transform:translateX(-50%);padding:6px 14px;border-radius:99px;background:rgba(19,25,12,.8);color:#fff;font:650 9px var(--display);white-space:nowrap;isolation:isolate}
+.cta::before{content:"";position:absolute;inset:-1.5px;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--a),transparent 0 70%,var(--frame) 85%,transparent 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 2.2s linear infinite;filter:drop-shadow(0 0 3px var(--frame))}
+@property --a{syntax:"<angle>";initial-value:0deg;inherits:false}
+@keyframes spin{to{--a:360deg}}
+.leak{position:absolute;inset:0;background:linear-gradient(0deg,var(--frame) 0%,rgba(214,254,81,.4) 35%,transparent 60%);animation:leak 2s infinite}
+.leak+.leak{background:#fffaf2;animation:flash 2s infinite}
+@keyframes leak{0%,100%{transform:translateY(100%)}20%{transform:translateY(-10%)}35%{transform:translateY(-100%)}}
+@keyframes flash{0%,10%,40%,100%{opacity:0}22%{opacity:.95}}
+.lupe{position:absolute;left:40%;top:56%;width:52px;height:52px;border-radius:50%;border:3px solid #fff;background:rgba(255,255,255,.08);animation:lupe 3s ease-out infinite}
+.lupe::after{content:"";position:absolute;width:5px;height:38px;background:#ddd;left:44px;top:38px;transform:rotate(-45deg);transform-origin:top;border-radius:3px}
+.ic{position:absolute;left:44%;top:59%;width:36px;height:36px;border-radius:9px;background:var(--frame);box-shadow:0 0 18px var(--frame)}
+@keyframes lupe{0%{transform:translate(90px,120px)}25%,100%{transform:translate(0,0)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.box ol,.box ul{margin:0;padding-left:20px;color:var(--muted)}
+.box li{margin:3px 0}
+.box li b{color:var(--fg)}
+.files{font:500 .86rem/1.9 var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;overflow-x:auto;white-space:pre}
+</style>
+
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:16px">
+  <span class="eyebrow">Graf-Gruppe · Social Video</span>
+  <h1>Reel-Frame im <em>Ad-Stil</em> der Referenz</h1>
+  <p class="lead">Der Schnitt einer 20-Sekunden-Werbeanzeige, zerlegt und als wiederverwendbares System für After Effects und Premiere Pro nachgebaut. Gilt für Objekt-Vorstellungen, Experten-Videos, Recruiting und Lead-Ads.</p>
+  <div class="meta"><span>Referenz: 20,7 s</span><span>9:16 · 720×1280 → Frame 1080×1920</span><span>25 fps</span><span>6 Akte</span><span>3 Kamerawechsel, sonst Jump-Cuts</span></div>
+</header>
+
+<section>
+  <span class="eyebrow">Stil-DNA</span>
+  <h2>Was den Look ausmacht</h2>
+  <div class="grid2">
+    <div class="box"><h3>Schnitt</h3><ul><li>Alle Sprechpausen raus, Lücken unter 0,1 s</li><li>Eine Kameraeinstellung, Abwechslung kommt aus Grafik und Zoom</li><li>Harter Cut auf weißen Vollbild-Screen für das Problem</li></ul></div>
+    <div class="box"><h3>Captions</h3><ul><li>1–2 Wörter, wechseln alle 0,3–0,5 s</li><li>Weiß, Grotesk Semibold, auf Brusthöhe (43 % Bildhöhe)</li><li>Rein: 0,18 s Blur + Fade + Scale 88→100 %. Raus: harter Cut</li><li>Hook: Grotesk klein + große <i>Serif kursiv</i>, Wort für Wort</li></ul></div>
+    <div class="box"><h3>Grafik</h3><ul><li>Ein Akzent (Referenz: Lime) für Kacheln, Glow, Wipe</li><li>Dunkle Glasflächen mit feiner Kontur</li><li>Alles poppt mit leichtem Overshoot (108 %)</li><li>Elemente laufen hinter der freigestellten Person</li></ul></div>
+    <div class="box"><h3>Bild & Ton</h3><ul><li>Warmes, leicht entsättigtes Grading, Schwarz angehoben</li><li>Intro-Zoom-Out, Slow Push im CTA-Teil</li><li>Kein hörbares Musikbett: nur Stimme, Sub-Bass unter dem Hook, SFX auf jeder Grafik</li></ul></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Zeitachse der Referenz</span>
+  <h2>Sechs Akte in 20 Sekunden</h2>
+  <div class="ruler" role="img" aria-label="Zeitstrahl: Hook 0–3 s, Problem 3–7,1 s, Lösung 7,1–11,1 s, Proof 11,1–16 s, Transition 16–16,4 s, CTA 16,4–20,7 s">
+    <div class="r1">Hook<span>0–3</span></div><div class="r2">Problem<span>3–7,1</span></div><div class="r3">Lösung<span>7,1–11,1</span></div><div class="r4">Proof<span>11,1–16</span></div><div class="r5"></div><div class="r6">CTA<span>16,4–20,7</span></div>
+  </div>
+  <div class="acts">
+    <div class="act"><span class="tc">00:00–03:00</span><div><h3>Hook</h3><ul><li>Erste Frames bei ca. 135 %, Zoom-Out auf 100 % in 0,2 s</li><li>Zweizeilige Hook-Caption, zweite Zeile baut sich Wort für Wort auf</li><li>App-Icon poppt mit Glow, Lupe fährt von rechts unten ein und schwebt</li><li>Sub-Bass liegt unter dem ganzen Hook und endet hart mit dem Schnitt</li></ul></div></div>
+    <div class="act"><span class="tc">03:00–07:10</span><div><h3>Problem als Gleichung</h3><ul><li>Harter Cut auf Weiß, Kachel A poppt, schwarze Caption darunter</li><li>Bei 4,4 s rutscht A nach links, „+“ und Kachel B poppen</li><li>Ab 6,8 s blurt und faded alles weg, dann Cut zurück auf die Person</li></ul></div></div>
+    <div class="act"><span class="tc">07:10–11:10</span><div><h3>Lösung</h3><ul><li>Nur A-Roll und Captions, schneller Jump-Cut-Rhythmus</li><li>Hier atmet das Video, keine Grafik</li></ul></div></div>
+    <div class="act"><span class="tc">11:10–16:00</span><div><h3>Social Proof</h3><ul><li>Dunkler Verlauf von unten, Pille mit Punkt und Schreibmaschinen-Text</li><li>Glas-Panel mit zwei Reihen Kundenlogos, die durchlaufen</li><li>9:16-Karten mit Projekt-Clips laufen oben <b>hinter</b> der Person durch (freigestellt)</li></ul></div></div>
+    <div class="act"><span class="tc">16:00–16:40</span><div><h3>Transition</h3><ul><li>Akzent-Light-Leak steigt von unten, Weißblitz, vertikaler Glitch-Balken wischt</li></ul></div></div>
+    <div class="act"><span class="tc">16:40–20:70</span><div><h3>CTA</h3><ul><li>CTA-Pille auf Schoßhöhe, ab 17,2 s läuft ein Glow um die Kontur</li><li>Slow Push von ca. 100 auf 115 %, die Pille skaliert mit</li><li>Am Ende Zoom zurück auf die Totale</li></ul></div></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Bausteine</span>
+  <h2>Die Module im Frame</h2>
+  <p>Jedes Modul ist eine eigene Komposition in After Effects. Module mit <b>.mogrt</b> exportiert das Skript zusätzlich als Grafikvorlage für Premiere, Texte und Akzentfarbe sind dort im Fenster „Essential Graphics“ editierbar. Farben in den Vorschauen sind die Referenz-Platzhalter.</p>
+  <div class="mods">
+    <div class="mod"><div class="phone"><div class="person"></div><div class="c-word">Traumlage</div></div><h3>M01 Caption</h3><span class="cap">.mogrt · oder automatisch aus SRT</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="hook"><small>Hör auf</small><b>Portale zu durchsuchen</b></div></div><h3>M02 Hook Serif</h3><span class="cap">.mogrt · Wort-Takt einstellbar</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="ic"></div><div class="lupe"></div></div><h3>M02b Such-Hook</h3><span class="cap">nur AE · eigenes Icon einsetzen</span></div>
+    <div class="mod"><div class="phone white"><div class="tiles"><div class="tile"><i>Top</i><em>Lage</em></div><span class="plus">+</span><div class="tile"><i>0 €</i><em>Provision</em></div></div><div class="c-word">für Ihre Familie</div></div><h3>M03/M04 Kacheln & Gleichung</h3><span class="cap">.mogrt · A, B, Caption, Timing</span></div>
+    <div class="mod"><div class="phone"><div class="cards"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="person"></div><div class="shade"></div><div class="pill">+350 verkaufte Immobilien</div><div class="panel"><div>PARTNER · PRESSE · GOOGLE 4,9 · PARTNER · PRESSE · GOOGLE 4,9 ·</div></div></div><h3>M05–M07 Proof</h3><span class="cap">Pille + Verlauf .mogrt · Logos, Karussell in AE</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="leak"></div><div class="leak"></div></div><h3>M08 Transition</h3><span class="cap">.mogrt · 0,6 s mittig über den Schnitt</span></div>
+    <div class="mod"><div class="phone"><div class="person"></div><div class="cta">Besichtigung anfragen →</div></div><h3>M09 CTA-Button</h3><span class="cap">.mogrt · Text, Höhe, Glow-Start</span></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Ton</span>
+  <h2>Soundeffekt-Liste</h2>
+  <p>Die Zeitpunkte stammen aus dem Bild und dem Spektrogramm der Referenz. Welche Sounddatei es genau war, lässt sich nicht bestimmen. Wählt passende Sounds aus einer lizenzierten Bibliothek (z. B. Artlist, Epidemic Sound) und legt sie in den Projektordner <code>05_SFX</code>.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Zeit</th><th>Ereignis</th><th>Sound</th><th>Pegel</th></tr></thead>
+    <tbody>
+      <tr><td class="tc">0,0–3,0</td><td>Hook gesamt</td><td>Sub-Bass-Drone oder Rumble, harter Stopp beim Schnitt</td><td>−22 dB</td></tr>
+      <tr><td class="tc">0,0</td><td>Intro-Zoom-Out</td><td>kurzer Whoosh oder Swish</td><td>−18 dB</td></tr>
+      <tr><td class="tc">0,1 · 0,4</td><td>Icon poppt, Lupe fährt ein</td><td>Pop, danach Glas-Sparkle</td><td>−20 dB</td></tr>
+      <tr><td class="tc">3,0</td><td>Cut auf Weiß</td><td>trockener Hit oder Klick</td><td>−16 dB</td></tr>
+      <tr><td class="tc">3,0 · 4,4</td><td>Kachel A, Kachel B</td><td>Bubble-Pop, zweiter etwas höher</td><td>−20 dB</td></tr>
+      <tr><td class="tc">6,8</td><td>Gleichung blurt raus</td><td>Reverse-Whoosh</td><td>−22 dB</td></tr>
+      <tr><td class="tc">11,2</td><td>Panel und Karten fliegen ein</td><td>UI-Swipe plus leiser Whoosh</td><td>−20 dB</td></tr>
+      <tr><td class="tc">11,4–12,0</td><td>Pillen-Text tippt</td><td>sehr leises Typing oder Ticks</td><td>−30 dB</td></tr>
+      <tr><td class="tc">16,0–16,3</td><td>Light-Leak-Transition</td><td>Whoosh mit Shimmer-Fahne</td><td>−16 dB</td></tr>
+      <tr><td class="tc">16,4</td><td>CTA erscheint</td><td>UI-Klick</td><td>−20 dB</td></tr>
+      <tr><td class="tc">17,2</td><td>Glow beginnt zu laufen</td><td>leiser Shimmer</td><td>−28 dB</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Stimme auf etwa −14 LUFS integriert mastern (Instagram), die SFX liegen deutlich darunter. Jede Grafik bekommt einen Sound, sonst wirkt der Schnitt schnell billig.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Werkzeuge</span>
+  <h2>Dateien und Einrichtung</h2>
+<div class="files">graf-reel-frame/
+  ae/graf_config.jsxinc               Farben, Schriften, Caption-Maße (einzige Stelle für die CI)
+  ae/01_GrafReel_Framework.jsx        baut alle Module und exportiert .mogrt
+  ae/02_GrafReel_Captions_aus_SRT.jsx macht aus einer SRT animierte Captions
+  ae/03_GrafReel_Zoom_Rig.jsx         Slow Push, Punch-In und Intro-Zoom für Footage
+  docs/Graf_Reel_Styleguide.html      dieses Dokument</div>
+  <div class="grid2">
+    <div class="box"><h3>Einmalig einrichten</h3><ol>
+      <li>In <code>graf_config.jsxinc</code> die Graf-Farben (HEX) und die PostScript-Namen der Schriften eintragen</li>
+      <li>In AE unter Voreinstellungen › Skripterstellung & Ausdrücke das Schreiben von Dateien erlauben</li>
+      <li>In AE <code>01_GrafReel_Framework.jsx</code> ausführen (Datei › Skripte › Skriptdatei ausführen)</li>
+      <li>Bei der Abfrage den .mogrt-Export bestätigen und einen Ordner wählen</li>
+      <li>In Premiere die .mogrt-Dateien über „Essential Graphics“ › Vorlage installieren einbinden</li>
+    </ol></div>
+    <div class="box"><h3>Pro Video</h3><ol>
+      <li><b>Premiere:</b> Rohschnitt, alle Pausen raus (Textbasierte Bearbeitung › Pausen löschen)</li>
+      <li><b>Zooms:</b> jeden zweiten Jump-Cut auf 115 % setzen, CTA-Teil mit Slow Push 100→115 %</li>
+      <li><b>Captions:</b> Transkript erstellen, als SRT exportieren, in AE Skript 02 ausführen. Alternativ das Modul M01 manuell einsetzen</li>
+      <li><b>Grafiken:</b> .mogrt-Module auf V2/V3, Transition M08 mittig über den Schnitt</li>
+      <li><b>Proof-Akt:</b> in AE schneiden (Roto-Pinsel für die Person, Karussell dahinter)</li>
+      <li><b>SFX</b> nach der Liste oben anlegen, Grading und Export als H.264, 1080×1920, 25 fps</li>
+    </ol></div>
+  </div>
+  <p class="note">Hervorhebungen in der SRT: <code>*Wort*</code> wird groß in Serif kursiv, <code>#Wort#</code> in Akzentfarbe. Markierte Wörter stehen immer allein.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Übertragung auf die Graf-Gruppe</span>
+  <h2>Ablauf je Videotyp</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Akt</th><th>Lead-Ad (20–25 s)</th><th>Objekt-Vorstellung (30–45 s)</th><th>Experte (30–40 s)</th><th>Recruiting (25–35 s)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Hook</b></td><td>„Hör auf, <i>Portale</i> zu durchsuchen“ + Lupe über Portal-Icon</td><td>„Diese Wohnung ist in <i>48 Stunden</i> weg“, Intro-Zoom auf die beste Einstellung</td><td>„Hör auf, deine Immobilie <i>unter Wert</i> zu verkaufen“</td><td>„Hör auf, in einem <i>Großkonzern</i> zu versauern“</td></tr>
+      <tr><td><b>Problem</b></td><td>Gleichung „Viele Angebote + Kein Überblick“</td><td>Fakten-Kacheln: m², Zimmer, Etage, Energieklasse</td><td>Gleichung „Schneller Verkauf + Zu niedriger Preis“</td><td>Gleichung „Gutes Gehalt + Kein Teamgeist“</td></tr>
+      <tr><td><b>Lösung</b></td><td>Talking Head, Captions</td><td>Walkthrough-B-Roll, Captions als Voice-over</td><td>Talking Head mit 1–2 B-Roll-Inserts</td><td>Mitarbeitende im O-Ton</td></tr>
+      <tr><td><b>Proof</b></td><td>Pille „+350 verkaufte Immobilien“ + Logo-Wand mit Partnern und Presse</td><td>Karussell mit Raum-Clips hinter dem Makler</td><td>Pille mit Google-Bewertung, Karussell mit Referenzobjekten</td><td>Karussell mit Team-Clips, Pille „Seit 19XX“</td></tr>
+      <tr><td><b>CTA</b></td><td>„Jetzt Beratung sichern →“</td><td>„Exposé anfordern →“</td><td>„Kostenlose Bewertung →“</td><td>„Jetzt bewerben →“</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>Pflichtangaben bei Objekt-Videos:</b> Wird eine Immobilie zum Kauf oder zur Miete beworben und liegt ein Energieausweis vor, verlangt § 87 GEG in kommerziellen Medien Pflichtangaben: Art des Ausweises, Energiekennwert, wesentlicher Energieträger, Baujahr und Effizienzklasse. Diese Angaben gehören in eine kleine Einblendung im Video oder mindestens in den Anzeigentext.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Offen</span>
+  <h2>Was noch fehlt</h2>
+  <div class="grid2">
+    <div class="box"><h3>Graf-CI</h3><p>Akzentfarbe, Glasfarbe und Schriften sind noch Platzhalter aus der Referenz. Sobald Logo, HEX-Werte und Schriften vorliegen, ist es eine Änderung in einer Datei.</p></div>
+    <div class="box"><h3>Erster Testlauf</h3><p>Die Skripte sind nicht in After Effects getestet. Beim ersten Lauf auftretende Fehlermeldungen bitte als Screenshot schicken, sie sind meist in Minuten behoben.</p></div>
+  </div>
+</section>
+
+</div>

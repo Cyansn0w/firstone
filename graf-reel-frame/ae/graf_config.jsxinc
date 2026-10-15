@@ -1,0 +1,151 @@
+// =====================================================================
+//  GRAF-GRUPPE REEL-FRAME  -  zentrale Konfiguration
+//  Alle Skripte lesen diese Datei. Farben/Schriften NUR hier aendern.
+// =====================================================================
+//  ACHTUNG: Die Farben unten sind PLATZHALTER aus dem Referenzvideo
+//  (Lime-Akzent). Durch die Graf-Gruppe-CI-Werte ersetzen (HEX).
+//  Schriften = PostScript-Namen (in AE: Zeichenfenster > Schrift waehlen,
+//  der PS-Name steht z.B. in der Schriftverwaltung / Font Book).
+// =====================================================================
+
+var GRAF = {
+    brand: "Graf-Gruppe",
+
+    // Format (Referenz: 9:16, 25 fps)
+    W: 1080,
+    H: 1920,
+    FPS: 25,
+
+    // ---- FARBEN (PLATZHALTER -> Graf-CI eintragen) ----
+    accent:  "#D6FE51",   // Hauptakzent (Kacheln, CTA-Glow, Wipe)
+    accent2: "#F6FE6D",   // Akzent hell (Kachel-Highlight)
+    glass:   "#13190C",   // dunkle Glas-Flaechen (Logo-Panel, CTA)
+    text:    "#FFFFFF",   // Caption-Farbe auf Video
+    ink:     "#111111",   // Text auf hellen Flaechen
+    paper:   "#FFFFFF",   // Hintergrund Infografik-Screens
+
+    // ---- SCHRIFTEN (PostScript-Namen, PLATZHALTER) ----
+    fontCaption: "Arial-BoldMT",                  // Referenz: breite Grotesk, Semibold
+    fontSerif:   "TimesNewRomanPS-BoldItalicMT",  // Referenz: schmale Serif kursiv (Hook-Akzent)
+    fontLabel:   "Arial-BoldMT",
+
+    // ---- CAPTIONS (Werte aus Referenz, auf 1080 px hochgerechnet) ----
+    capSize:      56,     // px
+    capY:         0.43,   // Anteil der Bildhoehe (Brusthoehe)
+    capMaxWords:  2,      // Woerter pro Einblendung
+    capMaxChars:  16,     // Zeichen pro Einblendung
+    capInDur:     0.18,   // s  Blur/Scale-In
+    capBlur:      18,     // Start-Blur
+
+    // ---- CTA ----
+    ctaText: "Jetzt Besichtigung anfragen →",
+    ctaY:    0.60
+};
+
+// ---------- Helfer (von allen Skripten genutzt) ----------
+function grafHex(h) {
+    h = h.replace("#", "");
+    return [parseInt(h.substr(0, 2), 16) / 255, parseInt(h.substr(2, 2), 16) / 255, parseInt(h.substr(4, 2), 16) / 255];
+}
+function grafC4(h) { var c = grafHex(h); return [c[0], c[1], c[2], 1]; }
+
+function grafFx(layer, matchName, name) {
+    var e = layer.property("ADBE Effect Parade").addProperty(matchName);
+    if (name) e.name = name;
+    return e;
+}
+function grafFxGet(layer, name) { return layer.property("ADBE Effect Parade").property(name); }
+
+function grafTr(layer, mn) { return layer.property("ADBE Transform Group").property(mn); }
+
+function grafText(comp, str, font, size, color3, pos, tracking) {
+    var l = comp.layers.addText(str);
+    var tp = l.property("ADBE Text Properties").property("ADBE Text Document");
+    var td = tp.value;
+    try { td.resetCharStyle(); td.resetParagraphStyle(); } catch (e) {}
+    td.text = str;
+    td.font = font;
+    td.fontSize = size;
+    td.applyFill = true;
+    td.fillColor = color3;
+    td.applyStroke = false;
+    td.justification = ParagraphJustification.CENTER_JUSTIFY;
+    td.tracking = tracking || 0;
+    tp.setValue(td);
+    grafTr(l, "ADBE Position").setValue(pos);
+    return l;
+}
+
+// Rechteck-Shape (zentriert auf Layer-Ursprung = Comp-Mitte)
+function grafRect(comp, name, w, h, r, fillHex, fillOpac, strokeHex, strokeW) {
+    var l = comp.layers.addShape();
+    l.name = name;
+    var g = l.property("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
+    g.name = "Box";
+    var rc = grafShapeContents(l).addProperty("ADBE Vector Shape - Rect");
+    rc.property("ADBE Vector Rect Size").setValue([w, h]);
+    rc.property("ADBE Vector Rect Roundness").setValue(r);
+    if (strokeHex) {
+        var s = grafShapeContents(l).addProperty("ADBE Vector Graphic - Stroke");
+        s.property("ADBE Vector Stroke Color").setValue(grafC4(strokeHex));
+        s.property("ADBE Vector Stroke Width").setValue(strokeW);
+    }
+    if (fillHex) {
+        var f = grafShapeContents(l).addProperty("ADBE Vector Graphic - Fill");
+        f.property("ADBE Vector Fill Color").setValue(grafC4(fillHex));
+        f.property("ADBE Vector Fill Opacity").setValue(fillOpac === undefined ? 100 : fillOpac);
+    }
+    return l;
+}
+function grafEllipse(comp, name, d, fillHex, fillOpac, strokeHex, strokeW) {
+    var l = comp.layers.addShape();
+    l.name = name;
+    var g = l.property("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
+    g.name = "Box";
+    var el = grafShapeContents(l).addProperty("ADBE Vector Shape - Ellipse");
+    el.property("ADBE Vector Ellipse Size").setValue([d, d]);
+    if (strokeHex) {
+        var s = grafShapeContents(l).addProperty("ADBE Vector Graphic - Stroke");
+        s.property("ADBE Vector Stroke Color").setValue(grafC4(strokeHex));
+        s.property("ADBE Vector Stroke Width").setValue(strokeW);
+    }
+    if (fillHex) {
+        var f = grafShapeContents(l).addProperty("ADBE Vector Graphic - Fill");
+        f.property("ADBE Vector Fill Color").setValue(grafC4(fillHex));
+        f.property("ADBE Vector Fill Opacity").setValue(fillOpac === undefined ? 100 : fillOpac);
+    }
+    return l;
+}
+function grafShapeContents(l) {
+    return l.property("ADBE Root Vectors Group").property(1).property("ADBE Vectors Group");
+}
+function grafShapeFill(l) { return grafShapeContents(l).property("ADBE Vector Graphic - Fill").property("ADBE Vector Fill Color"); }
+function grafShapeStroke(l) { return grafShapeContents(l).property("ADBE Vector Graphic - Stroke").property("ADBE Vector Stroke Color"); }
+
+// Standard-Einblendung der Referenz: Fade + Blur + leichter Scale-Up
+// delayExpr: Expression-Ausdruck (String) fuer Verzoegerung in s
+function grafInAnim(layer, delayExpr, dur, blur, scaleFrom) {
+    var d = delayExpr || "0";
+    var t = "var t=time-inPoint-(" + d + ");";
+    grafTr(layer, "ADBE Opacity").expression = t + "linear(t,0," + (dur * 0.6) + ",0,100)*value/100;";
+    grafTr(layer, "ADBE Scale").expression = t + "var s=easeOut(t,0," + dur + "," + scaleFrom + ",100);" +
+        "value.length==3?[value[0]*s/100,value[1]*s/100,value[2]]:[value[0]*s/100,value[1]*s/100];";
+    if (blur > 0) {
+        var b = grafFx(layer, "ADBE Gaussian Blur 2", "In-Blur");
+        b.property(1).expression = t + "linear(t,0," + dur + "," + blur + ",0);";
+    }
+}
+
+// Leichter Schatten fuer Lesbarkeit auf Video
+function grafSoftShadow(layer) {
+    try {
+        var ds = grafFx(layer, "ADBE Drop Shadow", "Lesbarkeit");
+        ds.property("ADBE Drop Shadow-0004").setValue(0);   // Distanz
+        ds.property("ADBE Drop Shadow-0005").setValue(28);  // Weichheit
+    } catch (e) {}
+}
+
+function grafExposeMGT(prop, comp, label) {
+    try { return prop.addToMotionGraphicsTemplateAs(comp, label); }
+    catch (e) { try { return prop.addToMotionGraphicsTemplate(comp); } catch (e2) { return false; } }
+}
